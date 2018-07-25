@@ -108,7 +108,6 @@ for block in blocks:
         url = block['href']
     if '.csv' in url:
         file_name = block.text.replace('0xc2', ' ').strip()
-        print file_name
         csvMth = csvYr = ''
         if 'October to December' in file_name or 'October to December' in file_name:
             csvMth = 'Q4'
