@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
 #### IMPORTS 1.0
-
+import sys
+reload(sys)
+sys.setdefaultencoding('utf8')
 import os
 import re
 import scraperwiki
@@ -85,74 +87,52 @@ def convert_mth_strings ( mth_string ):
 
 #### VARIABLES 1.0
 
-entity_id = "E1537_EFDC_gov"
-url = "http://www.eppingforestdc.gov.uk/index.php/home/file-store/category/6-csv?start=20"
+entity_id = "E1538_HDC_gov"
+url = "http://www.harlow.gov.uk/spend-500"
 errors = 0
 data = []
-d = {'limit': '0', '0f9358dcf0d8b9de65b32d49f9a7e8f7': '1'}
 
 
 #### READ HTML 1.0
 
-html = requests.post(url, data=d)
+html = requests.post(url)
 soup = BeautifulSoup(html.text, 'lxml')
 
 #### SCRAPE DATA
 
-blocks = soup.find_all('div', "pd-filenamebox")
+blocks = soup.find('div', "field field-name-body field-type-text-with-summary field-label-hidden").find_all('a', href=True)
 for block in blocks:
-    if 'http' not in block.find('a')['href']:
-        url = 'http://www.eppingforestdc.gov.uk' + block.find('a')['href']
+    if 'http' not in block['href']:
+        url = 'http://www.harlow.gov.uk' + block['href']
     else:
-        url = block.find('a')['href']
-    file_name = block.find('a').text.strip()
-    csvMth = csvYr = ''
-    if 'Q4' in file_name:
-        csvMth = 'Q4'
-        year_text = re.match(r'.*([1-3][0-9]{3})', file_name)
-        if year_text is not None:
-            csvYr =year_text.group(1)
-    elif 'Q3' in file_name:
-        csvMth = 'Q3'
-        year_text = re.match(r'.*([1-3][0-9]{3})', file_name)
-        if year_text is not None:
-            csvYr = year_text.group(1)
-    elif 'Q2' in file_name:
-        csvMth = 'Q2'
-        year_text = re.match(r'.*([1-3][0-9]{3})', file_name)
-        if year_text is not None:
-            csvYr = year_text.group(1)
-    elif 'Q1' in file_name:
-        csvMth = 'Q1'
-        year_text = re.match(r'.*([1-3][0-9]{3})', file_name)
-        if year_text is not None:
-            csvYr = year_text.group(1)
-    elif 'April 2010 to December 2010' in file_name:
-        csvMth = 'Q0'
-        csvYr = '2010'
-    elif 'q4 2015-16' in file_name:
-        csvMth = 'Q1'
-        csvYr = '2016'
-    elif 'q1' in file_name:
-        csvMth = 'Q2'
-        year_text = re.match(r'.*([1-3][0-9]{3})', file_name)
-        if year_text is not None:
-            csvYr = year_text.group(1)
-    elif 'q2' in file_name:
-        csvMth = 'Q3'
-        year_text = re.match(r'.*([1-3][0-9]{3})', file_name)
-        if year_text is not None:
-            csvYr = year_text.group(1)
-    elif 'q3' in file_name:
-        csvMth = 'Q4'
-        year_text = re.match(r'.*([1-3][0-9]{3})', file_name)
-        if year_text is not None:
-            csvYr = year_text.group(1)
-    else:
-        csvMth = file_name.split()[-2][:3]
-        csvYr = file_name.split()[-1]
-    csvMth = convert_mth_strings(csvMth.upper())
-    data.append([csvYr, csvMth, url])
+        url = block['href']
+    if '.csv' in url:
+        file_name = block.text.replace('0xc2', ' ').strip()
+        print file_name
+        csvMth = csvYr = ''
+        if 'October to December' in file_name or 'October to December' in file_name:
+            csvMth = 'Q4'
+            year_text = re.match(r'.*([1-3][0-9]{3})', file_name)
+            if year_text is not None:
+                csvYr =year_text.group(1)
+        elif 'July to September' in file_name:
+            csvMth = 'Q3'
+            year_text = re.match(r'.*([1-3][0-9]{3})', file_name)
+            if year_text is not None:
+                csvYr = year_text.group(1)
+        elif 'April to June' in file_name:
+            csvMth = 'Q2'
+            year_text = re.match(r'.*([1-3][0-9]{3})', file_name)
+            if year_text is not None:
+                csvYr = year_text.group(1)
+        elif 'January to March' in file_name or 'January to March' in file_name:
+            csvMth = 'Q1'
+            year_text = re.match(r'.*([1-3][0-9]{3})', file_name)
+            if year_text is not None:
+                csvYr = year_text.group(1)
+
+        csvMth = convert_mth_strings(csvMth.upper())
+        data.append([csvYr, csvMth, url])
 
 
 #### STORE DATA 1.0
